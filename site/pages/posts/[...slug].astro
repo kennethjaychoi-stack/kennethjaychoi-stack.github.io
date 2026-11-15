@@ -1,0 +1,183 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Icon } from 'astro-icon/components';
+import Base from '../../layouts/Base.astro';
+import InfoBox from '../../components/InfoBox.astro';
+import ExhibitionBadge from '../../components/ExhibitionBadge.astro';
+import MapView from '../../components/MapView.tsx';
+import Comments from '../../components/Comments.tsx';
+import Likes from '../../components/Likes.tsx';
+import { formatDate, sortForListing, toPin, type Post } from '../../lib/posts';
+import { SITE, categoryByName } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => import.meta.env.DEV || !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const d = post.data;
+const { Content, headings } = await render(post);
+const cat = categoryByName(d.category);
+const pin = toPin(post);
+
+// 같은 카테고리 → 같은 지역 순으로 관련 글을 채운다.
+const all = await getCollection('posts', ({ data }) => import.meta.env.DEV || !data.draft);
+const others = all.filter((p) => p.id !== post.id);
+const related = sortForListing([
+  ...others.filter((p) => p.data.category === d.category),
+  ...others.filter((p) => p.data.location?.region.do === d.location?.region.do),
+]).filter((p, i, xs) => xs.findIndex((x) => x.id === p.id) === i).slice(0, 3);
+
+const toc = headings.filter((h) => h.depth === 2);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.date.toISOString(),
+  dateModified: (d.updated ?? d.date).toISOString(),
+  author: { '@type': 'Person', name: SITE.author },
+  publisher: { '@type': 'Organization', name: SITE.title },
+  inLanguage: 'ko-KR',
+  ...(d.cover ? { image: new URL(d.cover, Astro.site ?? SITE.url).href } : {}),
+  ...(d.location?.coords
+    ? {
+        contentLocation: {
+          '@type': 'Place',
+          name: d.heritage?.[0]?.name ?? d.exhibition?.museum ?? d.title,
+          address: d.location.address,
+          geo: { '@type': 'GeoCoordinates', latitude: d.location.coords[0], longitude: d.location.coords[1] },
+        },
+      }
+    : {}),
+};
+---
+
+<Base
+  title={d.title}
+  description={d.description}
+  image={d.cover}
+  ogType="article"
+  publishedAt={d.date}
+  updatedAt={d.updated}
+  jsonLd={jsonLd}
+>
+  <nav class="text-xs text-ink-soft mb-5 flex items-center gap-1.5" aria-label="위치">
+    <a href="/" class="hover:text-accent">홈</a>
+    <Icon name="fa6-solid:chevron-right" class="w-2 h-2" />
+    {cat && <a href={`/category/${cat.slug}/`} class="hover:text-accent">{cat.name}</a>}
+  </nav>
+
+  <article>
+    <header>
+      <div class="flex items-center gap-2 flex-wrap text-xs text-ink-soft mb-3">
+        {
+          cat && (
+            <span class="flex items-center gap-1 text-accent font-bold">
+              <Icon name={cat.icon} class="w-3 h-3" />
+              {cat.name}
+            </span>
+          )
+        }
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        {d.updated && <span class="text-ink-faint">· {formatDate(d.updated)} 수정</span>}
+        <ExhibitionBadge post={post} />
+      </div>
+
+      <h1 class="font-serif text-[1.75rem] sm:text-4xl font-extrabold leading-tight tracking-tight">
+        {d.title}
+      </h1>
+
+      {d.description && <p class="mt-3 text-lg text-ink-soft leading-relaxed">{d.description}</p>}
+    </header>
+
+    {
+      d.cover && (
+        <img
+          src={d.cover}
+          alt={d.coverAlt ?? ''}
+          class="mt-7 w-full rounded border border-rule bg-paper-raised"
+          width="1600"
+          height="900"
+          style="aspect-ratio:16/9;object-fit:cover"
+        />
+      )
+    }
+
+    {/* 종료된 전시는 본문 전에 분명히 알린다 */}
+    <ExhibitionBadge post={post} variant="notice" />
+
+    {/* frontmatter 에서 자동 생성 — 글 쓸 때 본문에 다시 적지 않는다 */}
+    <InfoBox post={post} />
+
+    {
+      toc.length > 2 && (
+        <nav class="not-prose my-8 border-l-2 border-rule pl-4" aria-label="목차">
+          <p class="text-xs font-bold text-ink-soft mb-2">목차</p>
+          <ol class="text-sm space-y-1">
+            {toc.map((h) => (
+              <li>
+                <a href={`#${h.slug}`} class="text-ink-soft hover:text-accent">
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <div class="prose-dapsa mt-8">
+      <Content />
+    </div>
+
+    {
+      d.tags.length > 0 && (
+        <ul class="mt-10 flex gap-2 flex-wrap">
+          {d.tags.map((t) => (
+            <li class="text-xs text-ink-soft border border-rule rounded-full px-2.5 py-1">#{t}</li>
+          ))}
+        </ul>
+      )
+    }
+  </article>
+
+  {
+    pin && (
+      <section class="mt-14">
+        <h2 class="font-serif text-lg font-bold mb-3 flex items-center gap-2">
+          <Icon name="fa6-solid:location-dot" class="w-4 h-4 text-accent" />
+          위치
+        </h2>
+        <MapView pins={[pin]} single height={280} client:visible />
+      </section>
+    )
+  }
+
+  <Likes slug={post.id} client:visible />
+
+  <Comments slug={post.id} client:visible />
+
+  {
+    related.length > 0 && (
+      <section class="mt-14 pt-8 border-t border-rule">
+        <h2 class="font-serif text-lg font-bold mb-4">함께 볼 글</h2>
+        <ul class="space-y-3">
+          {related.map((p) => (
+            <li>
+              <a href={`/posts/${p.id}/`} class="group flex gap-3 items-baseline no-underline">
+                <Icon name="fa6-solid:angle-right" class="w-2.5 h-2.5 text-accent shrink-0 translate-y-1" />
+                <span>
+                  <span class="group-hover:text-accent transition-colors">{p.data.title}</span>
+                  <ExhibitionBadge post={p} />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>

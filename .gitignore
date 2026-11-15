@@ -1,0 +1,20 @@
+# build
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# env
+.env
+.env.production
+
+# 편집기에서 내린 글. 파일은 디스크에 남아 있으니 되살리려면 content/posts/ 로 옮기세요.
+content/.trash/
+
+# macOS
+.DS_Store
+
+# logs
+*.log
+npm-debug.log*

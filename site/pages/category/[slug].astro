@@ -1,0 +1,27 @@
+---
+import { Icon } from 'astro-icon/components';
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPostsByCategory } from '../../lib/posts';
+import { CATEGORIES } from '../../consts';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { slug: c.slug }, props: { category: c } }));
+}
+
+const { category } = Astro.props;
+const posts = await getPostsByCategory(category.name);
+---
+
+<Base title={category.name} description={`${category.description} — ${posts.length}편`}>
+  <header class="mb-8 pb-6 border-b border-rule">
+    <h1 class="font-serif text-2xl font-extrabold flex items-center gap-2.5">
+      <Icon name={category.icon} class="w-5 h-5 text-accent" />
+      {category.name}
+    </h1>
+    <p class="mt-2 text-ink-soft text-sm">{category.description} · {posts.length}편</p>
+  </header>
+
+  {posts.map((p) => <PostCard post={p} />)}
+  {posts.length === 0 && <p class="text-ink-soft">아직 이 분류에 글이 없습니다.</p>}
+</Base>

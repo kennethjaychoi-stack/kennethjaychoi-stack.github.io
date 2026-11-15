@@ -1,0 +1,83 @@
+---
+import { Icon } from 'astro-icon/components';
+import Base from '../../layouts/Base.astro';
+import ExhibitionBadge from '../../components/ExhibitionBadge.astro';
+import { getPosts, type Post } from '../../lib/posts';
+
+const posts = await getPosts();
+
+/**
+ * key 로 묶되, 값이 없는 글은 버린다.
+ * 한 글이 여러 값을 가질 수 있어(유산을 여러 곳 본 답사) 키를 배열로 받는다.
+ */
+function groupBy(posts: Post[], keys: (p: Post) => (string | undefined)[] | string | undefined) {
+  const map = new Map<string, Post[]>();
+  for (const p of posts) {
+    const raw = keys(p);
+    const list = Array.isArray(raw) ? raw : [raw];
+    // 같은 글이 한 묶음에 두 번 들어가지 않게 한다
+    for (const k of new Set(list.filter(Boolean) as string[])) {
+      const bucket = map.get(k) ?? [];
+      bucket.push(p);
+      map.set(k, bucket);
+    }
+  }
+  return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+}
+
+const byType = groupBy(posts, (p) => (p.data.heritage ?? []).map((h) => h.type));
+const byEra = groupBy(posts, (p) => (p.data.heritage ?? []).map((h) => h.era));
+const byRegion = groupBy(posts, (p) => p.data.location?.region.do);
+const byMuseum = groupBy(posts, (p) => p.data.exhibition?.museum);
+
+const sections = [
+  { title: '종목별', icon: 'fa6-solid:certificate', groups: byType },
+  { title: '시대별', icon: 'fa6-solid:hourglass-half', groups: byEra },
+  { title: '지역별', icon: 'fa6-solid:map-pin', groups: byRegion },
+  { title: '박물관별', icon: 'fa6-solid:building-columns', groups: byMuseum },
+].filter((s) => s.groups.length > 0);
+---
+
+<Base title="국가유산 색인" description="종목·시대·지역·박물관별로 정리한 글 색인입니다." wide>
+  <header class="mb-8">
+    <h1 class="font-serif text-2xl font-extrabold">국가유산 색인</h1>
+    <p class="mt-2 text-ink-soft text-sm">
+      종목·시대·지역·박물관별로 묶었습니다. 2024년 개편된 국가유산 체계를 따릅니다.
+    </p>
+  </header>
+
+  <div class="grid gap-10 sm:grid-cols-2">
+    {
+      sections.map((s) => (
+        <section>
+          <h2 class="font-serif text-lg font-bold mb-4 flex items-center gap-2 pb-2 border-b border-rule">
+            <Icon name={s.icon} class="w-4 h-4 text-accent" />
+            {s.title}
+          </h2>
+          <div class="space-y-5">
+            {s.groups.map(([name, items]) => (
+              <div>
+                <h3 class="text-sm font-bold text-ink-soft flex items-baseline gap-2">
+                  {name}
+                  <span class="text-xs text-ink-faint font-normal">{items.length}</span>
+                </h3>
+                <ul class="mt-1.5 space-y-1">
+                  {items.map((p) => (
+                    <li class="text-sm">
+                      <a href={`/posts/${p.id}/`} class="hover:text-accent transition-colors">
+                        {p.data.title}
+                      </a>
+                      <ExhibitionBadge post={p} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+
+  {posts.length === 0 && <p class="text-ink-soft">아직 글이 없습니다.</p>}
+</Base>

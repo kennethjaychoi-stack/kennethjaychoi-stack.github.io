@@ -1,0 +1,43 @@
+---
+import { SITE, CATEGORIES } from '../consts';
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-rule mt-20">
+  <div class="max-w-6xl mx-auto px-5 py-10 text-sm text-ink-soft">
+    <div class="flex flex-wrap gap-x-8 gap-y-4 justify-between">
+      <div class="max-w-sm">
+        <p class="font-serif font-bold text-ink text-base">{SITE.title}</p>
+        <p class="mt-1 text-xs leading-relaxed">{SITE.description}</p>
+      </div>
+
+      <nav class="flex flex-col gap-1.5" aria-label="카테고리">
+        {CATEGORIES.map((c) => <a href={`/category/${c.slug}/`} class="hover:text-accent">{c.name}</a>)}
+      </nav>
+
+      <nav class="flex flex-col gap-1.5" aria-label="기타">
+        <a href="/map/" class="hover:text-accent">답사 지도</a>
+        <a href="/heritage/" class="hover:text-accent">국가유산 색인</a>
+        <a href="/about/" class="hover:text-accent">소개</a>
+        <a href="/rss.xml" class="hover:text-accent">RSS</a>
+      </nav>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-rule flex flex-wrap gap-x-4 gap-y-2 text-xs text-ink-faint">
+      <p>© {year} {SITE.author}. 사진과 글의 저작권은 작성자에게 있습니다.</p>
+      <p>
+        아이콘 <a
+          href="https://fontawesome.com/license/free"
+          rel="noopener noreferrer nofollow"
+          target="_blank"
+          class="underline hover:text-accent">Font Awesome Free</a
+        > (CC BY 4.0) · 지도 <a
+          href="https://www.openstreetmap.org/copyright"
+          rel="noopener noreferrer nofollow"
+          target="_blank"
+          class="underline hover:text-accent">OpenStreetMap</a
+        >
+      </p>
+    </div>
+  </div>
+</footer>

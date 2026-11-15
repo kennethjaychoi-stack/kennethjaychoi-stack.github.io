@@ -1,0 +1,59 @@
+---
+import { Icon } from 'astro-icon/components';
+import Base from '../layouts/Base.astro';
+import { getPosts } from '../lib/posts';
+import { SITE } from '../consts';
+
+const posts = await getPosts();
+const regions = new Set(posts.map((p) => p.data.location?.region.do).filter(Boolean));
+---
+
+<Base title="소개" description={SITE.description}>
+  <h1 class="font-serif text-2xl font-extrabold">소개</h1>
+
+  <div class="prose-dapsa mt-6">
+    <p>
+      전국의 국가유산을 찾아다니고, 박물관 전시를 보러 다닌 기록입니다. 지금까지 {posts.length}편,
+      {regions.size}개 시·도를 다녔습니다.
+    </p>
+
+    <h2>이 블로그가 적어두는 것</h2>
+    <p>
+      답사기에는 <strong>가는 방법을 양쪽 다</strong> 적습니다. 박물관과 전시는 주로 지하철로 다니고,
+      충남처럼 조금 먼 곳은 차로 갑니다. 그래서 글마다 지하철 동선과 주차 정보를 함께 두고, 어느 쪽을
+      권하는지 표시해 둡니다.
+    </p>
+    <p>
+      입장료와 운영시간에는 <strong>기준일</strong>을 박아둡니다. 유산 자체는 변하지 않지만 이런 정보는
+      바뀌기 때문에, 언제 확인한 정보인지 모르면 쓸모가 없습니다.
+    </p>
+    <p>
+      전시 글에는 <strong>종료일</strong>이 들어갑니다. 기간이 지나면 글 맨 위에 종료 안내가 자동으로
+      붙습니다. 끝난 전시를 모르고 찾아가는 일을 만들지 않으려는 장치입니다.
+    </p>
+
+    <h2>정확성에 대해</h2>
+    <p>
+      유산의 종목과 지정번호, 명칭은 <strong>국가유산청 국가유산포털</strong>의 공식 정보를 확인해
+      적습니다. 2024년부터 바뀐 국가유산 체계(문화재 → 국가유산)를 따릅니다. 틀린 내용을 발견하시면 알려주세요.
+    </p>
+    <p>사진은 모두 직접 찍은 것입니다.</p>
+  </div>
+
+  <div class="mt-10 flex flex-wrap gap-3">
+    <a
+      href="/map/"
+      class="inline-flex items-center gap-2 text-sm border border-rule rounded px-3.5 py-2 hover:border-accent hover:text-accent transition-colors no-underline"
+    >
+      <Icon name="fa6-solid:map-location-dot" class="w-3.5 h-3.5" />
+      답사 지도 보기
+    </a>
+    <a
+      href="/rss.xml"
+      class="inline-flex items-center gap-2 text-sm border border-rule rounded px-3.5 py-2 hover:border-accent hover:text-accent transition-colors no-underline"
+    >
+      <Icon name="fa6-solid:rss" class="w-3.5 h-3.5" />
+      RSS 구독
+    </a>
+  </div>
+</Base>

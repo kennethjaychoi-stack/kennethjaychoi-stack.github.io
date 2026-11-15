@@ -1,0 +1,250 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* 테마 토글(data-theme)과 OS 설정을 모두 지원한다. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ── 디자인 토큰: 한지·먹색 톤 ───────────────────────────── */
+:root {
+  --paper: #faf8f5; /* 한지 톤 배경 */
+  --paper-raised: #fffdfa; /* 카드·박스 */
+  --ink: #1a1a1a; /* 먹색 본문 */
+  --ink-soft: #6b6560; /* 보조 텍스트 */
+  --ink-faint: #9a938c;
+  --accent: #9e3a2f; /* 단청 적색 — 링크·강조에만 */
+  --accent-soft: #f0e3e0;
+  --rule: #e5e0d8; /* 테두리 */
+  --shadow: 0 1px 2px rgb(26 26 26 / 4%), 0 8px 24px -12px rgb(26 26 26 / 10%);
+}
+
+[data-theme='dark'] {
+  --paper: #14120f;
+  --paper-raised: #1c1a16;
+  --ink: #ece7df;
+  --ink-soft: #a8a099;
+  --ink-faint: #7a736c;
+  --accent: #d98071;
+  --accent-soft: #2e201d;
+  --rule: #302c26;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px -12px rgb(0 0 0 / 50%);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-rule: var(--rule);
+
+  /* 본문은 Pretendard(가변), 제목은 명조 — 문화유산 톤 */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo',
+    'Malgun Gothic', sans-serif;
+  --font-serif: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+
+  /* 한글 본문 가독 폭: 1줄 35–40자 */
+  --container-measure: 43rem;
+}
+
+/* ── 기본 요소 ───────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    /* 한글은 1.7 이상이어야 읽힌다 */
+    line-height: 1.9;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    word-break: keep-all; /* 한글 단어 중간 줄바꿈 방지 */
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ── 본문 타이포그래피 (Tiptap 이 저장한 HTML 이 여기 렌더된다) ── */
+.prose-dapsa {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.9;
+  color: var(--ink);
+}
+
+.prose-dapsa > * + * {
+  margin-top: 1.4em;
+}
+
+.prose-dapsa h2 {
+  margin-top: 2.6em;
+  margin-bottom: 0.7em;
+  font-size: 1.5rem;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--rule);
+}
+
+.prose-dapsa h3 {
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  font-size: 1.22rem;
+}
+
+.prose-dapsa p {
+  margin-top: 1.4em;
+}
+
+.prose-dapsa a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.prose-dapsa strong {
+  font-weight: 700;
+}
+
+.prose-dapsa ul,
+.prose-dapsa ol {
+  padding-left: 1.35em;
+  margin-top: 1.2em;
+}
+
+.prose-dapsa ul {
+  list-style: disc;
+}
+
+.prose-dapsa ol {
+  list-style: decimal;
+}
+
+.prose-dapsa li + li {
+  margin-top: 0.45em;
+}
+
+.prose-dapsa blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 0.2em 0 0.2em 1.1em;
+  color: var(--ink-soft);
+  font-family: var(--font-serif);
+}
+
+.prose-dapsa hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 3em 0;
+}
+
+.prose-dapsa figure {
+  margin: 2.2em 0;
+}
+
+.prose-dapsa figcaption {
+  margin-top: 0.7em;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.prose-dapsa img {
+  border-radius: 3px;
+  display: block;
+  margin-inline: auto;
+}
+
+/* 답사 사진은 가로로 긴 성곽·전각이 많아 본문 폭을 넘겨준다 */
+.prose-dapsa .bleed {
+  width: min(96vw, 62rem);
+  margin-inline: calc(50% - min(48vw, 31rem));
+  max-width: none;
+}
+
+.prose-dapsa table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+  margin: 1.8em 0;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.prose-dapsa :is(th, td) {
+  border: 1px solid var(--rule);
+  padding: 0.6em 0.8em;
+  text-align: left;
+}
+
+.prose-dapsa th {
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+
+.prose-dapsa mark {
+  background: #fff1a8;
+  padding: 0.05em 0.15em;
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .prose-dapsa mark {
+  background: #5c4a12;
+  color: var(--ink);
+}
+
+.prose-dapsa code:not(pre code) {
+  background: var(--accent-soft);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.prose-dapsa pre {
+  padding: 1em 1.1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+}
+
+/* 본문에 삽입된 Font Awesome 아이콘 (스티커 대체) */
+.prose-dapsa .fa-inline {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin-inline: 0.1em;
+  color: var(--accent);
+}

@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import MapView from '../components/MapView.tsx';
+import { getPosts, toPin } from '../lib/posts';
+
+const posts = await getPosts();
+const pins = posts.map((p) => toPin(p)).filter((p) => p !== null);
+const regions = new Set(pins.map((p) => p.region));
+---
+
+<Base
+  title="답사 지도"
+  description={`지금까지 다녀온 ${pins.length}곳을 지도에 표시했습니다. 종목·시대·지역·접근 수단으로 걸러 볼 수 있습니다.`}
+  wide
+>
+  <header class="mb-6">
+    <h1 class="font-serif text-2xl font-extrabold">답사 지도</h1>
+    <p class="mt-2 text-ink-soft text-sm">
+      {pins.length}곳 · {regions.size}개 시·도. 종목·시대·지역과 접근 수단으로 걸러 볼 수 있습니다.
+    </p>
+  </header>
+
+  <MapView pins={pins} height={560} client:visible />
+
+  <p class="mt-4 text-xs text-ink-faint">
+    글을 쓰면 핀이 자동으로 늘어납니다. 핀 색은 붉은색이 국가유산, 파란색이 박물관·전시, 회색이 종료된 전시입니다.
+  </p>
+</Base>

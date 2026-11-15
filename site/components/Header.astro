@@ -1,0 +1,78 @@
+---
+import { Icon } from 'astro-icon/components';
+import { SITE, CATEGORIES } from '../consts';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(href);
+
+const nav = [
+  { href: '/map/', label: '지도', icon: 'fa6-solid:map-location-dot' },
+  { href: '/heritage/', label: '색인', icon: 'fa6-solid:list-ul' },
+  { href: '/about/', label: '소개', icon: 'fa6-solid:feather' },
+];
+---
+
+<header class="border-b border-rule sticky top-0 z-40 bg-paper/85 backdrop-blur-sm">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="flex items-center justify-between h-16 gap-4">
+      <a href="/" class="flex items-baseline gap-2 shrink-0 no-underline">
+        <span class="font-serif text-xl font-extrabold tracking-tight">{SITE.title}</span>
+        <span class="hidden sm:inline text-xs text-ink-faint">{SITE.tagline}</span>
+      </a>
+
+      <div class="flex items-center gap-1">
+        {
+          nav.map((n) => (
+            <a
+              href={n.href}
+              class:list={[
+                'px-2.5 py-1.5 text-sm rounded flex items-center gap-1.5 hover:bg-accent-soft transition-colors',
+                isActive(n.href) ? 'text-accent font-bold' : 'text-ink-soft',
+              ]}
+            >
+              <Icon name={n.icon} class="w-3.5 h-3.5" />
+              <span class="hidden sm:inline">{n.label}</span>
+            </a>
+          ))
+        }
+
+        <button
+          id="theme-toggle"
+          type="button"
+          aria-label="밝은 테마와 어두운 테마 전환"
+          class="ml-1 p-2 rounded text-ink-soft hover:bg-accent-soft transition-colors"
+        >
+          <Icon name="fa6-solid:sun" class="w-3.5 h-3.5 hidden dark:block" />
+          <Icon name="fa6-solid:moon" class="w-3.5 h-3.5 block dark:hidden" />
+        </button>
+      </div>
+    </div>
+
+    <nav class="flex gap-1 -mb-px overflow-x-auto pb-0" aria-label="카테고리">
+      {
+        CATEGORIES.map((c) => (
+          <a
+            href={`/category/${c.slug}/`}
+            class:list={[
+              'px-3 py-2 text-sm whitespace-nowrap border-b-2 flex items-center gap-1.5 transition-colors',
+              path === `/category/${c.slug}/`
+                ? 'border-accent text-accent font-bold'
+                : 'border-transparent text-ink-soft hover:text-ink',
+            ]}
+          >
+            <Icon name={c.icon} class="w-3.5 h-3.5" />
+            {c.name}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>
+
+<script>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+  });
+</script>
