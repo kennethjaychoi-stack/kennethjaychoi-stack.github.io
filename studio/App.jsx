@@ -64,6 +64,15 @@ function validate(fm, slug) {
     problems.push('유산 글에는 유산 이름이 적어도 하나 필요합니다.');
   }
 
+  /*
+   * 지역은 위치를 적는 순간 반드시 있어야 한다 — 없으면 빌드가 통째로 멈춘다.
+   * 예전에는 이걸 안 막아서, 편집기에서는 저장이 되는데 배포가 실패했다.
+   */
+  const loc = fm.location;
+  const hasLoc = Boolean(loc?.coords?.length || loc?.address?.trim() || loc?.region?.city?.trim());
+  if (hasLoc && !loc?.region?.do?.trim())
+    problems.push('위치를 적었으면 시·도를 골라야 합니다. (비우려면 위도·경도와 주소도 비워 주세요)');
+
   const c = fm.location?.coords;
   if (c && (c.length !== 2 || c.some((n) => typeof n !== 'number' || Number.isNaN(n))))
     problems.push('위도·경도는 둘 다 숫자로 넣어야 합니다. (비우면 지도에 표시되지 않습니다)');
