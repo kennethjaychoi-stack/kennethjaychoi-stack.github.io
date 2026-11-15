@@ -14,7 +14,9 @@ const LIMITS = { name: 20, body: 1000 };
  * 개발 중에는 댓글 API 가 옆 포트에서 따로 돕니다 (Astro 개발 서버가 새 경로를 안 받아서).
  * 배포하면 사이트와 같은 주소의 /api/comments 를 씁니다.
  */
-const API = (import.meta.env.DEV ? 'http://127.0.0.1:4323' : '') + '/api/comments';
+const API =
+  (import.meta.env.DEV ? 'http://127.0.0.1:4323' : (import.meta.env.PUBLIC_COMMENTS_API ?? '')) +
+  '/api/comments';
 
 type Comment = { id: string; name: string; body: string; at: string; pinned?: boolean };
 

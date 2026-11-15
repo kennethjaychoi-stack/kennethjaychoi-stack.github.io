@@ -53,6 +53,9 @@ const jsonLd = {
       }
     : {}),
 };
+/** 댓글·좋아요를 내보낼지. 받아줄 서버가 있을 때만 켠다. */
+const social = import.meta.env.DEV || Boolean(import.meta.env.PUBLIC_COMMENTS_API);
+
 ---
 
 <Base
@@ -156,9 +159,20 @@ const jsonLd = {
     )
   }
 
-  <Likes slug={post.id} client:visible />
-
-  <Comments slug={post.id} client:visible />
+  {
+    /*
+     * 댓글과 좋아요는 글을 받아줄 서버가 있어야 돕니다.
+     * 개발 중에는 127.0.0.1:4323 이 그 일을 하고,
+     * 배포한 사이트에서는 PUBLIC_COMMENTS_API 에 주소를 넣어야 켜집니다.
+     * 지금처럼 비어 있으면 망가진 단추를 보여주느니 아예 내보내지 않습니다.
+     */
+    social && (
+      <>
+        <Likes slug={post.id} client:visible />
+        <Comments slug={post.id} client:visible />
+      </>
+    )
+  }
 
   {
     related.length > 0 && (

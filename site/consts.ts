@@ -7,7 +7,7 @@ export const SITE = {
   tagline: '전국의 국가유산과 박물관 전시를 찾아다닌 기록',
   description:
     '전국의 국가유산 답사기와 박물관 전시 관람기. 지하철과 자동차로 가는 방법, 입장료와 관람 시간까지 정리합니다.',
-  url: 'http://localhost:4321',
+  url: 'https://kennethjaychoi-stack.github.io',
   locale: 'ko-KR',
   author: 'Kenneth',
 } as const;

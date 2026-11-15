@@ -1,0 +1,54 @@
+# 글을 올리면(main 에 push) 자동으로 사이트를 다시 지어 공개합니다.
+#
+# 하는 일은 로컬에서 `npm run build` 하는 것과 같습니다.
+# build 뒤에 scripts/verify-separation.mjs 가 자동으로 돌기 때문에,
+# 편집기 코드가 공개 사이트에 섞이면 여기서 배포가 멈춥니다.
+name: 사이트 배포
+
+on:
+  push:
+    branches: [main]
+  # 저장소 Actions 화면에서 손으로도 돌릴 수 있게
+  workflow_dispatch:
+
+# 공개 페이지에 쓸 권한만 준다
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 연달아 올리면 마지막 것만 배포한다
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 빌드 + 분리 검사(postbuild)
+      - run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -7,7 +7,9 @@ import { useEffect, useState } from 'react';
  * 기기를 바꾸면 다시 누를 수 있습니다 — 정확한 집계보다 가벼움을 택했습니다.
  */
 
-const API = (import.meta.env.DEV ? 'http://127.0.0.1:4323' : '') + '/api/likes';
+const API =
+  (import.meta.env.DEV ? 'http://127.0.0.1:4323' : (import.meta.env.PUBLIC_COMMENTS_API ?? '')) +
+  '/api/likes';
 const KEY = (slug: string) => `liked:${slug}`;
 
 /** 사생활 보호 모드 등에서 저장소 접근이 막힐 수 있어 전부 감싼다. */
