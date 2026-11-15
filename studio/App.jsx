@@ -47,6 +47,20 @@ function clean(v) {
   return v;
 }
 
+/**
+ * 종류에 맞지 않는 정보를 떼어낸다.
+ *
+ * 전시로 썼다가 유산으로 되돌리면 박물관 이름 같은 게 머리말에 남습니다.
+ * 화면에는 안 보이는데 지도와 색인은 그걸 읽기 때문에,
+ * 엉뚱한 이름이 사이트에 나옵니다. 저장할 때 아예 지웁니다.
+ */
+function forKind(fm) {
+  const out = { ...fm };
+  if (fm.kind === '전시') delete out.heritage;
+  else if (fm.kind === '유산') delete out.exhibition;
+  return out;
+}
+
 /** 저장 직전 검증 — 조용히 깨지는 것보다 알려주는 게 낫다. */
 function validate(fm, slug) {
   const problems = [];
@@ -148,7 +162,7 @@ export default function App() {
   };
 
   const save = async () => {
-    const cleaned = clean(fm) ?? {};
+    const cleaned = forKind(clean(fm) ?? {});
     const problems = validate(cleaned, slug);
     if (problems.length) {
       setStatus({ type: 'err', msg: problems.join('\n') });
