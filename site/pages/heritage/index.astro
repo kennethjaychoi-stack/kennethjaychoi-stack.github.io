@@ -28,7 +28,8 @@ function groupBy(posts: Post[], keys: (p: Post) => (string | undefined)[] | stri
 const byType = groupBy(posts, (p) => (p.data.heritage ?? []).map((h) => h.type));
 const byEra = groupBy(posts, (p) => (p.data.heritage ?? []).map((h) => h.era));
 const byRegion = groupBy(posts, (p) => p.data.location?.region.do);
-const byMuseum = groupBy(posts, (p) => p.data.exhibition?.museum);
+// 한 글이 박물관 두 곳에 동시에 잡힐 수 있다 (상설전과 특별전을 같이 본 경우)
+const byMuseum = groupBy(posts, (p) => (p.data.exhibition ?? []).map((e) => e.museum));
 
 const sections = [
   { title: '종목별', icon: 'fa6-solid:certificate', groups: byType },

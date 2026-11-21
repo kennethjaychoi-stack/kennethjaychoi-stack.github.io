@@ -11,49 +11,113 @@ const a = d.access;
 
 // 유산이면 대표 유산의 종목, 전시면 상설 여부와 기간을 머리에 둔다.
 // (박물관 이름은 왼쪽 제목에 이미 나오므로 반복하지 않는다)
-const ex = d.exhibition;
+const ex = d.exhibition ?? [];
 const heritage = d.heritage ?? [];
-const headline = heritage.length
-  ? [heritage[0].type, heritage.length > 1 ? `유산 ${heritage.length}곳` : null]
-      .filter(Boolean)
-      .join(' · ')
-  : ex?.permanent
+
+/*
+ * 전시 글에도 유산이 들어온다 — 전시에 나온 국보·보물이다.
+ * 같은 칸을 쓰되 '전시 유물'이라 부른다.
+ *
+ * 전시도 여러 개가 들어온다 — 한 번 가서 상설전과 특별전을 같이 보기 때문이다.
+ * 머리에는 대표 전시만 두고, 나머지는 아래 '본 전시' 줄에 모두 적는다.
+ */
+const isExhibition = d.kind === '전시';
+
+const period = (e: (typeof ex)[number]) =>
+  e.permanent
     ? '상설전'
-    : ex?.start && ex?.end
-      ? `특별전 · ${formatShort(ex.start)} – ${formatShort(ex.end)}`
-      : ex
-        ? '특별전'
-        : undefined;
+    : e.start && e.end
+      ? `특별전 · ${formatShort(e.start)} – ${formatShort(e.end)}`
+      : '특별전';
+
+const exHeadline = ex.length
+  ? [period(ex[0]), ex.length > 1 ? `전시 ${ex.length}개` : null].filter(Boolean).join(' · ')
+  : undefined;
+
+const headline = isExhibition
+  ? [exHeadline, heritage.length ? `유물 ${heritage.length}점` : null].filter(Boolean).join(' · ') ||
+    undefined
+  : heritage.length
+    ? [heritage[0].type, heritage.length > 1 ? `유산 ${heritage.length}곳` : null]
+        .filter(Boolean)
+        .join(' · ')
+    : exHeadline;
+
+// 목록으로 펼칠지 — 전시는 한 점이라도 적어 주고, 답사는 두 곳 이상일 때만.
+const listed = isExhibition ? heritage : heritage.length > 1 ? heritage : [];
+
+/*
+ * 머리글에 쓸 이름.
+ * 전시 이름이 있으면 그걸 앞세운다 — 독자가 찾는 건 '무슨 전시'이지 건물 이름이 아니다.
+ * 박물관이 둘 이상이면 '외 n곳'으로 줄인다.
+ */
+const museums = [...new Set(ex.map((e) => e.museum))];
+const museumLabel = museums.length > 1 ? `${museums[0]} 외 ${museums.length - 1}곳` : museums[0];
+// 이름 붙은 전시가 하나라도 있으면 그게 머리글이다 (대개 특별전)
+const named = ex.find((e) => e.name);
+const exLabel = named
+  ? ex.length > 1
+    ? `${named.name} 외 ${ex.length - 1}개`
+    : named.name
+  : museumLabel;
+
+// 촬영 규정은 전시마다 다를 수 있다. 같은 문구는 한 번만 보여준다.
+const photoRules = [...new Set(ex.map((e) => e.photo).filter(Boolean))].join(' · ');
 
 const rows = [
   a?.fee && { icon: 'fa6-solid:won-sign', label: '입장료', value: a.fee },
   a?.hours && { icon: 'fa6-solid:clock', label: '운영시간', value: a.hours },
   a?.closed && { icon: 'fa6-solid:calendar-xmark', label: '휴관', value: a.closed },
   a?.reservation && { icon: 'fa6-solid:ticket', label: '예약', value: '예약 필요' },
-  d.exhibition?.photo && { icon: 'fa6-solid:camera', label: '촬영', value: d.exhibition.photo },
+  photoRules && { icon: 'fa6-solid:camera', label: '촬영', value: photoRules },
 ].filter(Boolean) as { icon: string; label: string; value: string }[];
 ---
 
 <aside class="my-8 border border-rule rounded bg-paper-raised shadow-[var(--shadow)] overflow-hidden not-prose">
   <div class="px-4 py-3 border-b border-rule flex items-baseline justify-between gap-3 flex-wrap">
     <p class="font-serif font-bold text-ink">
-      {heritage[0]?.name ?? d.exhibition?.museum}
+      {isExhibition ? (exLabel ?? heritage[0]?.name) : (heritage[0]?.name ?? exLabel)}
     </p>
     {headline && <p class="text-xs text-ink-soft">{headline}</p>}
   </div>
 
   <dl class="divide-y divide-rule text-sm">
-    {/* 한 답사에서 여러 곳을 본 경우, 본 유산을 모두 적는다 */}
+    {/* 한 번에 상설전과 특별전을 같이 본 경우, 본 전시를 모두 적는다 */}
     {
-      heritage.length > 1 && (
+      (ex.length > 1 || ex[0]?.name) && (
         <div class="flex gap-3 px-4 py-2.5">
           <dt class="flex items-center gap-2 text-ink-soft shrink-0 w-24">
-            <Icon name="fa6-solid:landmark" class="w-3.5 h-3.5 text-accent" />
-            본 유산
+            <Icon name="fa6-solid:building-columns" class="w-3.5 h-3.5 text-accent" />
+            본 전시
           </dt>
           <dd class="flex-1">
             <ul class="space-y-1">
-              {heritage.map((h) => (
+              {ex.map((e) => (
+                <li>
+                  {e.name ?? e.museum}
+                  <span class="text-xs text-ink-soft">
+                    {' · '}
+                    {[e.name ? e.museum : null, period(e)].filter(Boolean).join(' · ')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+
+    {/* 본 유산(답사) 또는 전시 유물 */}
+    {
+      listed.length > 0 && (
+        <div class="flex gap-3 px-4 py-2.5">
+          <dt class="flex items-center gap-2 text-ink-soft shrink-0 w-24">
+            <Icon name="fa6-solid:landmark" class="w-3.5 h-3.5 text-accent" />
+            {isExhibition ? '전시 유물' : '본 유산'}
+          </dt>
+          <dd class="flex-1">
+            <ul class="space-y-1">
+              {listed.map((h) => (
                 <li>
                   {h.name}
                   {(h.type || h.era || h.unesco) && (

@@ -16,7 +16,7 @@ const faded = isEnded(post);
 const meta = [
   d.heritage?.[0]?.type,
   d.heritage?.[0]?.era,
-  d.exhibition?.museum,
+  d.exhibition?.map((e) => e.museum).join(' · '),
   d.location && [d.location.region.do, d.location.region.city].filter(Boolean).join(' '),
 ].filter(Boolean) as string[];
 ---

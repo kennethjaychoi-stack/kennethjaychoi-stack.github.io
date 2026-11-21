@@ -125,6 +125,14 @@ export default function Frontmatter({ value, onChange, slug, onSlugChange, slugL
     onChange({ ...fm, heritage: next.length ? next : [{}] });
   };
 
+  // 전시 목록. 상설전과 특별전을 같이 보는 일이 많아 유산과 같은 꼴로 둔다.
+  const shows = Array.isArray(fm.exhibition) && fm.exhibition.length ? fm.exhibition : [{}];
+  const addShow = () => onChange({ ...fm, exhibition: [...shows, {}] });
+  const removeShow = (i) => {
+    const next = shows.filter((_, n) => n !== i);
+    onChange({ ...fm, exhibition: next.length ? next : [{}] });
+  };
+
   const ctx = useMemo(() => ({ fm, g, set }), [fm]);
 
   const isExhibition = fm.kind === '전시';
@@ -178,57 +186,102 @@ export default function Frontmatter({ value, onChange, slug, onSlugChange, slugL
         </div>
       </section>
 
-      {!isExhibition && (
+      {/*
+        * 전시 글에도 같은 칸을 쓴다 — 전시에 나온 국보·보물이 곧 유산이다.
+        * 부르는 이름만 '전시 유물'로 바꾼다.
+        */}
+      <section>
+        <h3>
+          {isExhibition ? '전시 유물' : '국가유산'}
+          <small>
+            {isExhibition
+              ? '· 전시에서 본 국보·보물을 더하세요'
+              : '· 한 답사에서 여러 곳을 봤다면 모두 더하세요'}
+          </small>
+        </h3>
+
+        {heritage.map((h, i) => (
+          <div className="repeat" key={i}>
+            <div className="repeat-head">
+              <span>
+                {i === 0 ? (isExhibition ? '대표 유물' : '대표 유산') : `${i + 1}번째`}
+              </span>
+              <button type="button" className="link" onClick={() => removeHeritage(i)}>
+                빼기
+              </button>
+            </div>
+            <div className="grid">
+              <Text
+                path={`heritage.${i}.name`}
+                label={isExhibition ? '유물 이름' : '유산 이름'}
+                placeholder={isExhibition ? '금동미륵보살반가사유상' : '수원 화성'}
+              />
+              <Select path={`heritage.${i}.type`} label="종목" options={HERITAGE_TYPES} />
+              <Select path={`heritage.${i}.era`} label="시대" options={ERAS} />
+              <Check path={`heritage.${i}.unesco`} label="유네스코 세계유산" />
+            </div>
+          </div>
+        ))}
+
+        <button type="button" className="add" onClick={addHeritage}>
+          {isExhibition ? '+ 유물 더하기' : '+ 유산 더하기'}
+        </button>
+
+        <p className="note">
+          종목·명칭은 국가유산청 <strong>국가유산포털</strong>의 공식 표기를 확인해 넣으세요.
+          {isExhibition
+            ? ' 여기 적은 유물은 종목·시대 색인에 함께 잡힙니다. 전시에 유물이 없으면 비워 두세요.'
+            : ' 첫 번째 유산이 대표가 되어 지도와 색인의 기준이 됩니다.'}
+        </p>
+        <p className="note">
+          <strong>지정번호(국보 제○호)는 적지 않습니다.</strong> 2021년에 폐지된 표기입니다.
+        </p>
+      </section>
+
+      {isExhibition && (
         <section>
           <h3>
-            국가유산
-            <small>· 한 답사에서 여러 곳을 봤다면 모두 더하세요</small>
+            전시
+            <small>· 한 번에 상설전과 특별전을 같이 봤다면 모두 더하세요</small>
           </h3>
 
-          {heritage.map((h, i) => (
+          {shows.map((e, i) => (
             <div className="repeat" key={i}>
               <div className="repeat-head">
-                <span>{i === 0 ? '대표 유산' : `${i + 1}번째`}</span>
-                <button type="button" className="link" onClick={() => removeHeritage(i)}>
+                <span>{i === 0 ? '대표 전시' : `${i + 1}번째`}</span>
+                <button type="button" className="link" onClick={() => removeShow(i)}>
                   빼기
                 </button>
               </div>
               <div className="grid">
-                <Text path={`heritage.${i}.name`} label="유산 이름" placeholder="수원 화성" />
-                <Select path={`heritage.${i}.type`} label="종목" options={HERITAGE_TYPES} />
-                <Select path={`heritage.${i}.era`} label="시대" options={ERAS} />
-                <Check path={`heritage.${i}.unesco`} label="유네스코 세계유산" />
+                <Text path={`exhibition.${i}.museum`} label="박물관" placeholder="국립중앙박물관" />
+                <Text
+                  path={`exhibition.${i}.name`}
+                  label="전시 이름"
+                  placeholder="신라의 금속 — 빛나는 기술"
+                />
+                <Check path={`exhibition.${i}.permanent`} label="상설전 (기간 없음)" />
+                <Date_ path={`exhibition.${i}.start`} label="시작일" />
+                <Date_ path={`exhibition.${i}.end`} label="종료일" />
+                <Text
+                  path={`exhibition.${i}.photo`}
+                  label="촬영 규정"
+                  wide
+                  placeholder="플래시·삼각대 금지"
+                />
               </div>
             </div>
           ))}
 
-          <button type="button" className="add" onClick={addHeritage}>
-            + 유산 더하기
+          <button type="button" className="add" onClick={addShow}>
+            + 전시 더하기
           </button>
 
           <p className="note">
-            종목·명칭은 국가유산청 <strong>국가유산포털</strong>의 공식 표기를 확인해 넣으세요.
-            첫 번째 유산이 <strong>대표</strong>가 되어 지도와 색인의 기준이 됩니다.
-          </p>
-          <p className="note">
-            <strong>지정번호(국보 제○호)는 적지 않습니다.</strong> 2021년에 폐지된 표기입니다.
-          </p>
-        </section>
-      )}
-
-      {isExhibition && (
-        <section>
-          <h3>전시</h3>
-          <div className="grid">
-            <Text path="exhibition.museum" label="박물관" placeholder="국립중앙박물관" />
-            <Check path="exhibition.permanent" label="상설전 (기간 없음)" />
-            <Date_ path="exhibition.start" label="시작일" />
-            <Date_ path="exhibition.end" label="종료일" />
-            <Text path="exhibition.photo" label="촬영 규정" wide placeholder="플래시·삼각대 금지" />
-          </div>
-          <p className="note">
+            <strong>전시 이름</strong>은 특별전에만 적으면 됩니다 — 상설전은 대개 이름이 따로 없습니다.
             특별전은 <strong>종료일을 꼭 넣으세요.</strong> 기간이 지나면 글 맨 위에 종료 안내가 자동으로
-            붙고 목록에서 아래로 내려갑니다.
+            붙고 목록에서 아래로 내려갑니다. 상설전과 같이 적었다면 특별전이 끝나도 글은 살아 있습니다 —
+            <strong>모두 끝났을 때만</strong> 종료로 봅니다.
           </p>
         </section>
       )}

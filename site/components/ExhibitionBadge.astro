@@ -1,6 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { daysLeft, exhibitionStatus, formatShort, type Post } from '../lib/posts';
+import { closingSoonest, daysLeft, exhibitionStatus, exhibitions, formatShort, type Post } from '../lib/posts';
 
 interface Props {
   post: Post;
@@ -10,8 +10,13 @@ interface Props {
 const { post, variant = 'badge' } = Astro.props;
 
 const status = exhibitionStatus(post);
-const ex = post.data.exhibition;
+const all = exhibitions(post);
+/* 안내문은 가장 급한 전시를 기준으로 쓴다 — 곧 끝나는 쪽이다. */
+const ex = closingSoonest(post) ?? all[0];
 const left = daysLeft(post);
+
+/** '국립중앙박물관 · 리움미술관' — 같은 곳이면 한 번만 */
+const museums = [...new Set(all.map((e) => e.museum).filter(Boolean))].join(' · ');
 
 const style = {
   permanent: { icon: 'fa6-solid:infinity', label: '상설전', cls: 'text-ink-soft border-rule' },
@@ -42,11 +47,15 @@ const style = {
     <div class="not-prose my-6 border border-rule rounded bg-paper-raised px-4 py-3 flex gap-3 text-sm">
       <Icon name="fa6-solid:circle-xmark" class="w-4 h-4 text-ink-faint mt-1 shrink-0" />
       <div>
-        <p class="font-bold text-ink">이 전시는 종료되었습니다.</p>
-        <p class="text-ink-soft mt-0.5">
-          {ex?.start && ex?.end && `${formatShort(ex.start)} – ${formatShort(ex.end)}`}
-          {ex?.museum && ` · ${ex.museum}`}
-        </p>
+        <p class="font-bold text-ink">{all.length > 1 ? '이 전시들은 모두 종료되었습니다.' : '이 전시는 종료되었습니다.'}</p>
+        <ul class="text-ink-soft mt-0.5 space-y-0.5">
+          {all.map((e) => (
+            <li>
+              {e.name ? `《${e.name}》 · ${e.museum}` : e.museum}
+              {e.start && e.end && ` · ${formatShort(e.start)} – ${formatShort(e.end)}`}
+            </li>
+          ))}
+        </ul>
         <p class="text-ink-soft mt-1.5 text-xs">
           기록으로 남겨둔 글입니다. 상설 전시에서 일부 유물을 계속 볼 수 있는 경우가 있으니 본문을 확인해 주세요.
         </p>
@@ -64,7 +73,9 @@ const style = {
           진행 중인 전시입니다 — {formatShort(ex.end)}까지
           {left != null && <span class="font-normal text-ink-soft"> ({left}일 남음)</span>}
         </p>
-        {ex.museum && <p class="text-ink-soft mt-0.5">{ex.museum}</p>}
+        {/* 어느 전시가 곧 끝나는지 이름으로 밝힌다 */}
+        {ex?.name && <p class="text-ink mt-0.5">《{ex.name}》</p>}
+        {museums && <p class="text-ink-soft mt-0.5">{museums}</p>}
       </div>
     </div>
   )

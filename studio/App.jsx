@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import Editor from './Editor.jsx';
 import Frontmatter from './Frontmatter.jsx';
 import CommentQueue from './CommentQueue.jsx';
+import Fa from './Fa.jsx';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -56,8 +57,8 @@ function clean(v) {
  */
 function forKind(fm) {
   const out = { ...fm };
-  if (fm.kind === '전시') delete out.heritage;
-  else if (fm.kind === '유산') delete out.exhibition;
+  // 전시 글에도 유산은 남긴다 — 전시에 나온 국보·보물이 곧 유산이다.
+  if (fm.kind === '유산') delete out.exhibition;
   return out;
 }
 
@@ -71,9 +72,20 @@ function validate(fm, slug) {
   if (!fm.date) problems.push('작성일이 필요합니다.');
 
   if (fm.kind === '전시') {
-    if (!fm.exhibition?.museum) problems.push('전시 글에는 박물관 이름이 필요합니다.');
-    if (!fm.exhibition?.permanent && !fm.exhibition?.end)
-      problems.push('특별전에는 종료일이 필요합니다. 종료일이 없으면 끝난 전시를 걸러낼 수 없습니다.');
+    // 전시는 여러 개를 적을 수 있다. 하나하나 같은 기준으로 본다.
+    const shows = Array.isArray(fm.exhibition) ? fm.exhibition : [];
+    if (!shows.some((e) => e?.museum?.trim()))
+      problems.push('전시 글에는 박물관 이름이 적어도 하나 필요합니다.');
+
+    shows.forEach((e, i) => {
+      if (!e?.museum?.trim() && !e?.permanent && !e?.start && !e?.end) return; // 빈 칸은 그냥 버린다
+      const where = shows.length > 1 ? `${i + 1}번째 전시: ` : '';
+      if (!e?.museum?.trim()) problems.push(`${where}박물관 이름이 필요합니다.`);
+      if (!e?.permanent && !e?.end)
+        problems.push(
+          `${where}특별전에는 종료일이 필요합니다. 종료일이 없으면 끝난 전시를 걸러낼 수 없습니다.`,
+        );
+    });
   } else if (!fm.heritage?.some?.((h) => h?.name?.trim())) {
     problems.push('유산 글에는 유산 이름이 적어도 하나 필요합니다.');
   }
@@ -241,7 +253,7 @@ export default function App() {
         </header>
 
         <button type="button" className="primary block" onClick={() => { setView('write'); newPost(); }}>
-          + 새 글
+          <Fa name="plus" /> 새 글
         </button>
 
         <button
@@ -249,7 +261,7 @@ export default function App() {
           className={`block queue-link ${view === 'comments' ? 'on' : ''}`}
           onClick={() => setView(view === 'comments' ? 'write' : 'comments')}
         >
-          댓글 검토
+          <Fa name="comments" /> 댓글 검토
           {pendingCount > 0 && <span className="badge">{pendingCount}</span>}
         </button>
 
@@ -303,16 +315,17 @@ export default function App() {
             }}
             title={fm.draft ? '누르면 공개 글이 됩니다' : '누르면 초고로 돌아갑니다'}
           >
+            <Fa name={fm.draft ? 'pen' : 'eye'} />
             {fm.draft ? '초고' : '공개'}
           </button>
 
           {existing && (
             <button type="button" className="danger" onClick={() => remove(slug)}>
-              내리기
+              <Fa name="trash-can" /> 내리기
             </button>
           )}
           <button type="button" className="primary" onClick={save}>
-            저장 <small>⌘S</small>
+            <Fa name="floppy-disk" /> 저장 <small>⌘S</small>
           </button>
         </div>
 
@@ -330,7 +343,9 @@ export default function App() {
 
         <div className="info">
           <button type="button" className="info-toggle" onClick={() => setInfoOpen((v) => !v)}>
-            <span className={`chev ${infoOpen ? 'open' : ''}`}>▸</span>
+            <span className={`chev ${infoOpen ? 'open' : ''}`}>
+              <Fa name="chevron-right" />
+            </span>
             글 정보
             <small>
               분류 · 유산/전시 · 위치 · 가는 방법

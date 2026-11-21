@@ -46,7 +46,7 @@ const jsonLd = {
     ? {
         contentLocation: {
           '@type': 'Place',
-          name: d.heritage?.[0]?.name ?? d.exhibition?.museum ?? d.title,
+          name: d.heritage?.[0]?.name ?? d.exhibition?.[0]?.museum ?? d.title,
           address: d.location.address,
           geo: { '@type': 'GeoCoordinates', latitude: d.location.coords[0], longitude: d.location.coords[1] },
         },

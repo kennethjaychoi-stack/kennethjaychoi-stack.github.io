@@ -58,6 +58,9 @@ const posts = defineCollection({
      * 답사에서 본 국가유산. 한 번에 여러 곳을 보는 일이 많아 목록으로 둔다.
      * 첫 번째가 대표 유산이며 제목·지도·색인의 기준이 된다.
      *
+     * 전시 글도 이 칸을 쓴다 — 전시에 나온 국보·보물이 곧 유산이기 때문이다.
+     * 글에서는 '전시 유물'이라 부르지만 종목·시대 색인에는 똑같이 잡힌다.
+     *
      * 지정번호(국보 제○호)는 받지 않는다 — 2021년에 폐지된 표기다.
      */
     heritage: z
@@ -71,16 +74,30 @@ const posts = defineCollection({
       )
       .optional(),
 
-    exhibition: z
-      .object({
-        museum: z.string(),
-        permanent: z.boolean().default(false),
-        start: z.coerce.date().optional(),
-        // 특별전은 종료일이 필수. 지나면 자동으로 '종료' 처리된다.
-        end: z.coerce.date().optional(),
-        photo: z.string().optional(),
-      })
-      .optional(),
+    /**
+     * 본 전시. 한 번 가서 상설전과 특별전을 같이 보는 일이 많아 목록으로 둔다.
+     * 첫 번째가 대표 전시이며 제목·색인의 기준이 된다.
+     *
+     * 예전에 쓰던 '전시 하나' 꼴({ museum: ... })도 그대로 읽는다 —
+     * 이미 쓴 글을 고치게 만들 이유가 없다.
+     */
+    exhibition: z.preprocess(
+      (v) => (v == null || Array.isArray(v) ? v : [v]),
+      z
+        .array(
+          z.object({
+            museum: z.string(),
+            /** 특별전 이름. 상설전은 대개 이름이 따로 없으므로 비워 둔다. */
+            name: z.string().optional(),
+            permanent: z.boolean().default(false),
+            start: z.coerce.date().optional(),
+            // 특별전은 종료일이 필수. 지나면 자동으로 '종료' 처리된다.
+            end: z.coerce.date().optional(),
+            photo: z.string().optional(),
+          }),
+        )
+        .optional(),
+    ),
 
     location: z
       .object({

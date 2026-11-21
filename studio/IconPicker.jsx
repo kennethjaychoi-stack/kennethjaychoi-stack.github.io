@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Fa from './Fa.jsx';
 
 /** 답사·전시 글에서 자주 쓸 아이콘을 앞에 띄워둔다. */
 const SUGGESTED = [
@@ -75,7 +76,7 @@ export default function IconPicker({ onPick, onClose }) {
             placeholder="아이콘 검색 (영문) — 예: camera, train, won"
           />
           <button type="button" onClick={onClose} aria-label="닫기">
-            ✕
+            <Fa name="xmark" />
           </button>
         </div>
 

@@ -9,6 +9,7 @@ import { CharacterCount, Placeholder } from '@tiptap/extensions';
 import { Figure } from './Figure.js';
 import { FaIcon } from './FaIcon.js';
 import IconPicker from './IconPicker.jsx';
+import Fa from './Fa.jsx';
 
 const FONT_SIZES = ['15px', '16px', '17px', '18px', '20px', '24px'];
 
@@ -220,7 +221,7 @@ export default function Editor({ slug, title, onTitleChange, initialHtml, onChan
             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
           />
           <button type="button" title="글자색 해제" onClick={can((c) => c.unsetColor())}>
-            ⌫
+            <Fa name="eraser" />
           </button>
         </div>
 
@@ -239,7 +240,7 @@ export default function Editor({ slug, title, onTitleChange, initialHtml, onChan
             />
           ))}
           <button type="button" title="형광펜 해제" onClick={can((c) => c.unsetHighlight())}>
-            ⌫
+            <Fa name="eraser" />
           </button>
         </div>
 
@@ -255,62 +256,62 @@ export default function Editor({ slug, title, onTitleChange, initialHtml, onChan
         <span className="sep" />
 
         <button type="button" className={act('bulletList')} onClick={can((c) => c.toggleBulletList())} title="목록">
-          • 목록
+          <Fa name="list-ul" /> 목록
         </button>
         <button type="button" className={act('orderedList')} onClick={can((c) => c.toggleOrderedList())} title="번호 목록">
-          1. 목록
+          <Fa name="list-ol" /> 목록
         </button>
         <button type="button" className={act('blockquote')} onClick={can((c) => c.toggleBlockquote())} title="인용">
-          ❝
+          <Fa name="quote-left" />
         </button>
         <button type="button" onClick={can((c) => c.setHorizontalRule())} title="구분선">
-          ―
+          <Fa name="minus" />
         </button>
 
         <span className="sep" />
 
         <button type="button" className={act('left')} onClick={can((c) => c.setTextAlign('left'))} title="왼쪽">
-          ⇤
+          <Fa name="align-left" />
         </button>
         <button type="button" onClick={can((c) => c.setTextAlign('center'))} title="가운데">
-          ↔
+          <Fa name="align-center" />
         </button>
         <button type="button" onClick={can((c) => c.setTextAlign('right'))} title="오른쪽">
-          ⇥
+          <Fa name="align-right" />
         </button>
 
         <span className="sep" />
 
         <button type="button" className={act('link')} onClick={setLink} title="링크">
-          🔗 링크
+          <Fa name="link" /> 링크
         </button>
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} title="사진 올리기">
-          {uploading ? '올리는 중…' : '🖼 사진'}
+          {uploading ? '올리는 중…' : <><Fa name="image" /> 사진</>}
         </button>
         <button type="button" onClick={can((c) => c.toggleFigureBleed())} title="사진을 본문 폭보다 넓게">
-          ⤢ 넓게
+          <Fa name="up-right-and-down-left-from-center" /> 넓게
         </button>
         <button
           type="button"
           onClick={can((c) => c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }))}
           title="표 넣기"
         >
-          ▦ 표
+          <Fa name="table-cells" /> 표
         </button>
         <button type="button" className={act('codeBlock')} onClick={can((c) => c.toggleCodeBlock())} title="코드블록">
-          {'</>'}
+          <Fa name="code" />
         </button>
         <button type="button" onClick={() => setIconOpen(true)} title="아이콘 넣기 (이모지 대신)">
-          ★ 아이콘
+          <Fa name="icons" /> 아이콘
         </button>
 
         <span className="sep" />
 
         <button type="button" onClick={can((c) => c.undo())} title="되돌리기">
-          ↶
+          <Fa name="rotate-left" />
         </button>
         <button type="button" onClick={can((c) => c.redo())} title="다시 실행">
-          ↷
+          <Fa name="rotate-right" />
         </button>
       </div>
 
